@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+pdfplumber
+python-docx
+pytesseract
+Pillow
+openai>=1.0.0
+asyncpg
+pgvector
+pydantic-settings
+httpx
+langdetect

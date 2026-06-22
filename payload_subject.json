@@ -1,0 +1,8 @@
+{
+  "subjectId": "660e8400-e29b-41d4-a716-446655440001",
+  "titre": "Développement application web fullstack",
+  "description": "Développer une application web avec React et Node.js",
+  "techno": ["React", "Node.js", "PostgreSQL", "Docker"],
+  "prerequis": "JavaScript, bases de données",
+  "niveau": "ING2"
+}
