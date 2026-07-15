@@ -1,0 +1,56 @@
+services:
+  ai:
+    build: .
+    container_name: neurostage_ai
+    ports:
+      - "8001:8001"
+    environment:
+      DATABASE_URL: postgresql://neuro_admin:neuro_password@db:5432/neurostage_db
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      INTERNAL_SECRET: ${INTERNAL_SECRET}
+      NESTJS_INTERNAL_URL: http://app:3000
+      UPLOAD_DIR: /var/neurostage/uploads
+      UPLOAD_BASE_URL: ${UPLOAD_BASE_URL:-http://localhost:3000}
+      LLM_PROVIDER: ${LLM_PROVIDER:-ollama}
+      LLM_BASE_URL: ${LLM_BASE_URL:-http://host.docker.internal:11434/v1}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-nomic-embed-text}
+      GENERATION_MODEL: ${GENERATION_MODEL:-llama3.2}
+      EMBEDDING_DIMENSIONS: ${EMBEDDING_DIMENSIONS:-768}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+    volumes:
+      - uploads:/var/neurostage/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - neurostage_network
+
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: neurostage_postgres
+    environment:
+      POSTGRES_DB: neurostage_db
+      POSTGRES_USER: neuro_admin
+      POSTGRES_PASSWORD: neuro_password
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - neurostage_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U neuro_admin -d neurostage_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  db_data:
+  uploads:
+
+networks:
+  neurostage_network:
+    external: true
+    name: neurostage_network

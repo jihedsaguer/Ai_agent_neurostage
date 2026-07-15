@@ -1,7 +1,9 @@
+import asyncio
 import asyncpg
 
 from app.config import settings
-
+import logging
+logger = logging.getLogger(__name__)
 _pool: asyncpg.Pool | None = None
 
 
@@ -13,8 +15,20 @@ def get_pool() -> asyncpg.Pool:
 
 async def init_db() -> None:
     global _pool
+    max_retries = 10
+    retry_delay = 3
+    for attempt in range(1, max_retries + 1):
+        try:
+            logger.info(f"Connecting to database (attempt {attempt}/{max_retries})")
+            _pool = await asyncpg.create_pool(settings.DATABASE_URL)
+            break
+        except Exception as e:
+            logger.warning(f"Database connection failed: {e}")
+            if attempt == max_retries:
+                raise RuntimeError(f"Could not connect to database after {max_retries} attempts")
+            await asyncio.sleep(retry_delay)
 
-    _pool = await asyncpg.create_pool(settings.DATABASE_URL)
+
     dims = settings.EMBEDDING_DIMENSIONS
 
     async with _pool.acquire() as conn:
