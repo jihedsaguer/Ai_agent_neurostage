@@ -22,8 +22,9 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/neurostage-ai:latest
-
+          tags:  |
+                ${{ secrets.DOCKERHUB_USERNAME }}/neurostage-ai:latest
+                ${{ secrets.DOCKERHUB_USERNAME }}/neurostage-ai:${{ github.sha }}
   deploy:
     needs: build-and-push
     runs-on: self-hosted
@@ -31,6 +32,7 @@ jobs:
       - name: Deploy on VM
         run: |
           cd ~/neurostage
+          echo "${{ github.sha }}" > .last-deploy-ai-sha
           docker compose pull ai
           docker compose up -d ai
           docker image prune -f
